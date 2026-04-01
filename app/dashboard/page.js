@@ -76,7 +76,7 @@ async function getJobberData() {
     body: JSON.stringify({
       query: `query {
         account { name }
-        quotes(first: 100) { nodes { status amounts { total } } }
+        quotes(first: 100) { nodes { quoteStatus amounts { total } } }
         jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } } }
         invoices(first: 100) { nodes { amounts { total } } }
       }`,
@@ -103,7 +103,7 @@ export default async function Dashboard() {
   const invoices = data?.invoices?.nodes || [];
 
   const totalQuotes = quotes.length;
-  const approvedQuotes = quotes.filter((q) => q.status === "approved").length;
+  const approvedQuotes = quotes.filter((q) => q.quoteStatus === "APPROVED").length;
   const closeRate = totalQuotes > 0 ? ((approvedQuotes / totalQuotes) * 100).toFixed(1) : "0.0";
 
   const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.amounts?.total || 0), 0);
