@@ -85,7 +85,7 @@ async function getJobberData() {
   });
 
   const json = await res.json();
-  console.log("Jobber data fetched, account:", json?.data?.account?.name);
+  console.log("Jobber full data:", JSON.stringify(json?.data?.account));
   return json.data;
 }
 
