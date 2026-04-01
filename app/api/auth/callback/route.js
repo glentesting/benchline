@@ -36,7 +36,7 @@ export async function GET(request) {
   });
 
   if (error) {
-    return new Response("Failed to store account", { status: 500 });
+    return new Response(`Failed to store account: ${error.message}`, { status: 500 });
   }
 
   return Response.redirect("https://benchline-eta.vercel.app/dashboard");
