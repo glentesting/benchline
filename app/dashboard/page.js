@@ -88,47 +88,57 @@ export default async function DashboardPage() {
   const pct = (n) => `${n.toFixed(1)}%`;
 
   const metrics = [
-    { label: "Quote Close Rate", value: pct(quoteCloseRate), bg: "bg-green-50", text: "text-green-700", border: "border-green-100" },
-    { label: "Avg Ticket Size", value: fmt(avgTicketSize), bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-100" },
-    { label: "Avg Job Margin", value: pct(avgJobMargin), bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-100" },
-    { label: "Total Revenue", value: fmt(totalRevenue), bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200" },
+    { label: "Quote Close Rate", value: pct(quoteCloseRate), accent: "border-green-500", text: "text-gray-900" },
+    { label: "Avg Ticket Size", value: fmt(avgTicketSize), accent: "border-blue-500", text: "text-gray-900" },
+    { label: "Avg Job Margin", value: pct(avgJobMargin), accent: "border-purple-500", text: "text-gray-900" },
+    { label: "Total Revenue", value: fmt(totalRevenue), accent: "border-gray-400", text: "text-gray-900" },
   ];
+
+  const now = new Date();
+  const monthYear = now.toLocaleString("en-US", { month: "long", year: "numeric" });
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Top bar */}
-      <header className="flex items-center justify-between px-8 py-5 border-b border-gray-100">
-        <p className="text-xs font-bold tracking-[0.25em] text-gray-400 uppercase">
-          Benchline
+      {/* Top navigation */}
+      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white">
+        <p className="text-sm font-bold text-gray-900 tracking-wide">
+          &#9889; BENCHLINE
         </p>
-        <p className="text-sm text-gray-500">{accountName}</p>
+        <p className="text-sm text-gray-400">{accountName}</p>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-10">
-          January 2026
+      <main className="flex-1 px-8 py-8 max-w-6xl mx-auto w-full">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {monthYear}
         </h1>
+        <p className="text-sm text-gray-400 mb-10 flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          Connected to Jobber &middot; Live data
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {metrics.map((m) => (
             <div
               key={m.label}
-              className={`rounded-xl border ${m.border} ${m.bg} p-6`}
+              className={`bg-white rounded-xl shadow-sm border border-gray-100 border-t-2 ${m.accent} p-6`}
             >
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-3">
                 {m.label}
               </p>
-              <p className={`text-3xl font-bold ${m.text}`}>{m.value}</p>
+              <p className={`text-[32px] font-bold leading-tight ${m.text}`}>{m.value}</p>
             </div>
           ))}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="px-8 py-5 border-t border-gray-100">
+      <footer className="px-8 py-5">
         <p className="text-xs text-gray-300 text-center">
-          Connected to Jobber &middot; Live data
+          Benchline &middot; Built for Jobber users
         </p>
       </footer>
     </div>
