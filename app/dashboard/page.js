@@ -29,6 +29,7 @@ async function getJobberData() {
   });
 
   const json = await res.json();
+  console.log("Full Jobber response:", JSON.stringify(json?.data?.account));
   return json.data;
 }
 
