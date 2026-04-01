@@ -84,10 +84,20 @@ export default function Home() {
             <h2 style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a", marginBottom: "12px" }}>5 numbers. That's it.</h2>
             <p style={{ fontSize: "16px", color: "#64748b", maxWidth: "420px", margin: "0 auto" }}>We don't overwhelm you with 50 charts. Just the 5 things that actually move your business.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px", marginBottom: "14px" }}>
             {[
               { icon: "\ud83d\udccb", title: "Quote Close Rate", desc: "See exactly which quotes are winning and which are dying \u2014 and why." },
               { icon: "\ud83d\udcb5", title: "Average Ticket Size", desc: "Know if your pricing is drifting. Catch low-ticket jobs before they become a pattern." },
+            ].map((f) => (
+              <div key={f.title} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "22px" }}>
+                <div style={{ fontSize: "26px", marginBottom: "12px" }}>{f.icon}</div>
+                <div style={{ fontWeight: "700", fontSize: "14px", color: "#0f172a", marginBottom: "7px" }}>{f.title}</div>
+                <div style={{ fontSize: "13px", color: "#64748b", lineHeight: "1.65" }}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+            {[
               { icon: "\ud83d\udc77", title: "Revenue Per Tech", desc: "See your top performer and who needs a coaching conversation \u2014 instantly." },
               { icon: "\ud83d\udd01", title: "Callback Rate", desc: "Track return visits so quality problems surface before customers complain." },
               { icon: "\ud83d\udcc8", title: "Job Profit Margin", desc: "Know which service types make you money and which ones are eating it." },
