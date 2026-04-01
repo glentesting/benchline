@@ -1,170 +1,116 @@
 import { supabase } from "../../lib/supabase";
 
-const QUERY = `{
-  account {
-    name
-  }
-  quotes(first: 100) {
-    nodes {
-      status
-      amounts {
-        total
-      }
-    }
-  }
-  jobs(first: 100) {
-    nodes {
-      jobNumber
-      jobCosting {
-        totalRevenue
-        totalCost
-      }
-    }
-  }
-  invoices(first: 100) {
-    nodes {
-      amounts {
-        total
-      }
-    }
-  }
-}`;
-
-export default async function DashboardPage() {
-  const { data: account } = await supabase
+async function getJobberData() {
+  const { data } = await supabase
     .from("jobber_accounts")
     .select("access_token")
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  let accountName = "Unknown";
-  let quoteCloseRate = 0;
-  let avgTicketSize = 0;
-  let avgJobMargin = 0;
-  let totalRevenue = 0;
+  if (!data) return null;
 
-  if (account?.access_token) {
-    const res = await fetch("https://api.getjobber.com/api/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${account.access_token}`,
-        "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
-      },
-      body: JSON.stringify({ query: QUERY }),
-    });
+  const res = await fetch("https://api.getjobber.com/api/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${data.access_token}`,
+      "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
+    },
+    body: JSON.stringify({
+      query: `query {
+        account { name }
+        quotes(first: 100) { nodes { status amounts { total } } }
+        jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } } }
+        invoices(first: 100) { nodes { amounts { total } } }
+      }`,
+    }),
+    cache: "no-store",
+  });
 
-    if (res.ok) {
-      const json = await res.json();
-      const data = json.data;
+  const json = await res.json();
+  return json.data;
+}
 
-      accountName = data?.account?.name || "Unknown";
+export default async function Dashboard() {
+  const data = await getJobberData();
 
-      // Quote Close Rate
-      const quotes = data?.quotes?.nodes || [];
-      const approvedCount = quotes.filter((q) => q.status === "approved").length;
-      quoteCloseRate = quotes.length > 0 ? (approvedCount / quotes.length) * 100 : 0;
+  const accountName = data?.account?.name || "Your Account";
+  const quotes = data?.quotes?.nodes || [];
+  const jobs = data?.jobs?.nodes || [];
+  const invoices = data?.invoices?.nodes || [];
 
-      // Invoices — Average Ticket Size & Total Revenue
-      const invoices = data?.invoices?.nodes || [];
-      totalRevenue = invoices.reduce((sum, inv) => sum + (parseFloat(inv.amounts?.total) || 0), 0);
-      avgTicketSize = invoices.length > 0 ? totalRevenue / invoices.length : 0;
+  const totalQuotes = quotes.length;
+  const approvedQuotes = quotes.filter((q) => q.status === "approved").length;
+  const closeRate = totalQuotes > 0 ? ((approvedQuotes / totalQuotes) * 100).toFixed(1) : "0.0";
 
-      // Average Job Margin
-      const jobs = data?.jobs?.nodes || [];
-      const margins = jobs
-        .map((j) => {
-          const rev = parseFloat(j.jobCosting?.totalRevenue) || 0;
-          const cost = parseFloat(j.jobCosting?.totalCost) || 0;
-          return rev > 0 ? ((rev - cost) / rev) * 100 : null;
-        })
-        .filter((m) => m !== null);
-      avgJobMargin = margins.length > 0 ? margins.reduce((a, b) => a + b, 0) / margins.length : 0;
-    }
-  }
+  const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.amounts?.total || 0), 0);
+  const avgTicket = invoices.length > 0 ? (totalInvoiced / invoices.length).toFixed(0) : 0;
 
-  const fmt = (n) => n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  const pct = (n) => `${n.toFixed(1)}%`;
+  const marginsArr = jobs
+    .filter((j) => j.jobCosting?.totalRevenue > 0)
+    .map((j) => ((j.jobCosting.totalRevenue - j.jobCosting.totalCost) / j.jobCosting.totalRevenue) * 100);
+  const avgMargin = marginsArr.length > 0 ? (marginsArr.reduce((a, b) => a + b, 0) / marginsArr.length).toFixed(1) : "0.0";
 
   const now = new Date();
-  const monthYear = now.toLocaleString("en-US", { month: "long", year: "numeric" });
+  const monthYear = now.toLocaleString("default", { month: "long", year: "numeric" });
 
   const metrics = [
-    { icon: "\ud83d\udccb", label: "Close Rate", value: pct(quoteCloseRate), change: "+2.4%", changeUp: true, benchmark: "Industry avg: 42%" },
-    { icon: "\ud83e\uddf6", label: "Avg Ticket Size", value: fmt(avgTicketSize), change: "+8.1%", changeUp: true, benchmark: "Industry avg: $320" },
-    { icon: "\ud83d\udc77", label: "Revenue per Tech", value: "$0", change: "--", changeUp: true, benchmark: "Coming soon" },
-    { icon: "\ud83d\udd01", label: "Callback Rate", value: "0%", change: "--", changeUp: true, benchmark: "Coming soon" },
-    { icon: "\ud83d\udcc8", label: "Job Margin", value: pct(avgJobMargin), change: "+1.2%", changeUp: true, benchmark: "Industry avg: 35%" },
+    { id: "close", label: "Quote Close Rate", value: `${closeRate}%`, icon: "\ud83d\udccb", color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0", sub: "Industry avg: 55%" },
+    { id: "ticket", label: "Avg Ticket Size", value: `$${Number(avgTicket).toLocaleString()}`, icon: "\ud83e\uddf6", color: "#d97706", bg: "#fffbeb", border: "#fde68a", sub: "Your 90-day avg" },
+    { id: "tech", label: "Revenue / Tech", value: "$0", icon: "\ud83d\udc77", color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe", sub: "Coming soon" },
+    { id: "callback", label: "Callback Rate", value: "0%", icon: "\ud83d\udd01", color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe", sub: "Coming soon" },
+    { id: "margin", label: "Avg Job Margin", value: `${avgMargin}%`, icon: "\ud83d\udcc8", color: "#0891b2", bg: "#ecfeff", border: "#a5f3fc", sub: "Healthy: 30-50%" },
   ];
 
   return (
-    <>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
-      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', sans-serif" }}>
-        {/* Top nav */}
-        <header className="h-14 flex items-center justify-between px-6 border-b border-gray-200 bg-white">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm">
-              &#9889;
-            </div>
-            <span style={{ fontSize: "17px", fontWeight: 800 }} className="text-gray-900">
-              Bench<span className="text-blue-600">line</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            <span className="text-xs text-gray-400">Synced live</span>
-          </div>
-        </header>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh" }}>
 
-        {/* Main content */}
-        <main className="max-w-5xl mx-auto w-full px-6 py-7">
-          {/* Top row */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{monthYear}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">{accountName}</p>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-4 text-right">
-              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-1">Monthly Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">{fmt(totalRevenue)}</p>
-              <p className="text-xs text-green-500 mt-1 flex items-center justify-end gap-0.5">
-                <span>&#9650;</span> 12.3%
-              </p>
-            </div>
-          </div>
+      {/* NAV */}
+      <nav style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "0 24px", height: "58px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "28px", height: "28px", background: "linear-gradient(135deg, #3b82f6, #6366f1)", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>{"\u26a1"}</div>
+          <span style={{ fontWeight: "800", fontSize: "17px", color: "#0f172a" }}>Bench<span style={{ color: "#2563eb" }}>line</span></span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#22c55e" }} />
+          <span style={{ fontSize: "12px", color: "#94a3b8" }}>Synced live &middot; {accountName}</span>
+        </div>
+      </nav>
 
-          {/* Metric cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {metrics.map((m) => (
-              <div
-                key={m.label}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:shadow-md transition"
-              >
-                <span className="text-xl mb-2 block">{m.icon}</span>
-                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-1">
-                  {m.label}
-                </p>
-                <p className="text-3xl font-bold text-gray-900 leading-tight">{m.value}</p>
-                <p className={`text-xs mt-1 ${m.changeUp ? "text-green-500" : "text-red-500"}`}>
-                  {m.change !== "--" && <span>{m.changeUp ? "\u25b2" : "\u25bc"} </span>}
-                  {m.change}
-                </p>
-                <p className="text-[10px] text-gray-300 mt-1">{m.benchmark}</p>
-              </div>
-            ))}
+      {/* MAIN */}
+      <div style={{ maxWidth: "1060px", margin: "0 auto", padding: "28px 24px" }}>
+
+        {/* Header row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
+          <div>
+            <h1 style={{ fontSize: "22px", fontWeight: "800", color: "#0f172a", marginBottom: "4px" }}>{monthYear}</h1>
+            <p style={{ fontSize: "13px", color: "#64748b" }}>{accountName}</p>
           </div>
-        </main>
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "14px 20px", textAlign: "right", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a" }}>${totalInvoiced.toLocaleString()}</div>
+            <div style={{ fontSize: "12px", color: "#16a34a", fontWeight: "600", marginTop: "2px" }}>Total Invoiced</div>
+            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "1px" }}>Monthly Revenue</div>
+          </div>
+        </div>
+
+        {/* Metric Cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px", marginBottom: "24px" }}>
+          {metrics.map((m) => (
+            <div key={m.id} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderTop: `3px solid ${m.color}`, cursor: "pointer" }}>
+              <div style={{ fontSize: "20px", marginBottom: "10px" }}>{m.icon}</div>
+              <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>{m.label}</div>
+              <div style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a", marginBottom: "4px" }}>{m.value}</div>
+              <div style={{ fontSize: "10px", color: "#94a3b8" }}>{m.sub}</div>
+            </div>
+          ))}
+        </div>
 
         {/* Footer */}
-        <footer className="text-center text-xs text-gray-400 mt-8 pb-6">
+        <p style={{ textAlign: "center", fontSize: "12px", color: "#94a3b8", marginTop: "32px" }}>
           Benchline &middot; Built for Jobber users &middot; getbenchline.com
-        </footer>
+        </p>
       </div>
-    </>
+    </div>
   );
 }
