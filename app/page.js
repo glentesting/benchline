@@ -84,7 +84,7 @@ export default function Home() {
             <h2 style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a", marginBottom: "12px" }}>5 numbers. That's it.</h2>
             <p style={{ fontSize: "16px", color: "#64748b", maxWidth: "420px", margin: "0 auto" }}>We don't overwhelm you with 50 charts. Just the 5 things that actually move your business.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
             {[
               { icon: "\ud83d\udccb", title: "Quote Close Rate", desc: "See exactly which quotes are winning and which are dying \u2014 and why." },
               { icon: "\ud83d\udcb5", title: "Average Ticket Size", desc: "Know if your pricing is drifting. Catch low-ticket jobs before they become a pattern." },
