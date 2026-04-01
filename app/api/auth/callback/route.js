@@ -27,6 +27,7 @@ export async function GET(request) {
   }
 
   const token = await tokenRes.json();
+  console.log("Jobber token response:", JSON.stringify(token));
 
   const { error } = await supabase.from("jobber_accounts").insert({
     jobber_account_id: token.account_id,
