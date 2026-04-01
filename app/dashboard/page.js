@@ -90,7 +90,12 @@ async function getJobberData() {
 }
 
 export default async function Dashboard() {
-  const data = await getJobberData();
+  let data = null;
+  try {
+    data = await getJobberData();
+  } catch (e) {
+    console.log("Dashboard error:", e.message);
+  }
 
   const accountName = data?.account?.name || "Your Account";
   const quotes = data?.quotes?.nodes || [];
