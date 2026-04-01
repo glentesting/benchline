@@ -16,7 +16,7 @@ export async function GET(request) {
       client_secret: process.env.JOBBER_CLIENT_SECRET,
       grant_type: "authorization_code",
       code,
-      redirect_uri: "https://benchline.vercel.app/api/auth/callback",
+      redirect_uri: "https://benchline-eta.vercel.app/api/auth/callback",
     }),
   });
 
@@ -29,15 +29,15 @@ export async function GET(request) {
   const token = await tokenRes.json();
 
   const { error } = await supabase.from("jobber_accounts").insert({
+    jobber_account_id: token.account_id,
     access_token: token.access_token,
     refresh_token: token.refresh_token,
-    account_id: token.account_id,
-    created_at: new Date().toISOString(),
+    account_name: token.account_name || null,
   });
 
   if (error) {
     return new Response("Failed to store account", { status: 500 });
   }
 
-  return Response.redirect("https://benchline.vercel.app/dashboard");
+  return Response.redirect("https://benchline-eta.vercel.app/dashboard");
 }
