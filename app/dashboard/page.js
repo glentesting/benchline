@@ -85,7 +85,6 @@ async function getJobberData() {
   });
 
   const json = await res.json();
-  console.log("Jobber full response:", JSON.stringify(json));
   return json.data;
 }
 
@@ -98,6 +97,7 @@ export default async function Dashboard() {
   }
 
   const accountName = data?.account?.name || "Your Account";
+  console.log("Account name:", accountName);
   const quotes = data?.quotes?.nodes || [];
   const jobs = data?.jobs?.nodes || [];
   const invoices = data?.invoices?.nodes || [];
