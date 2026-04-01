@@ -144,8 +144,18 @@ export default async function Dashboard() {
       {/* NAV */}
       <nav style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "0 24px", height: "58px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: "28px", height: "28px", background: "linear-gradient(135deg, #3b82f6, #6366f1)", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>{"\u26a1"}</div>
-          <span style={{ fontWeight: "800", fontSize: "17px", color: "#0f172a" }}>Bench<span style={{ color: "#2563eb" }}>line</span></span>
+          <div style={{ width: "28px", height: "28px", background: "linear-gradient(135deg, #2563eb, #6366f1)", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="16" height="16" viewBox="0 0 32 22" fill="none">
+              <rect x="2" y="9" width="28" height="4" rx="2" fill="white" opacity="0.9"/>
+              <rect x="5" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+              <rect x="24" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+              <polyline points="6,8 12,4 18,6 26,1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="26" cy="1" r="2" fill="white"/>
+            </svg>
+          </div>
+          <span style={{ fontWeight: "800", fontSize: "17px", color: "#0f172a", letterSpacing: "-0.03em" }}>
+            Bench<span style={{ color: "#2563eb" }}>line</span>
+          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#22c55e" }} />

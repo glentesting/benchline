@@ -7,8 +7,18 @@ export default function Home() {
       {/* NAV */}
       <nav style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "0 24px", height: "58px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: "28px", height: "28px", background: "linear-gradient(135deg, #3b82f6, #6366f1)", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>{"\u26a1"}</div>
-          <span style={{ fontWeight: "800", fontSize: "17px", color: "#0f172a" }}>Bench<span style={{ color: "#2563eb" }}>line</span></span>
+          <div style={{ width: "28px", height: "28px", background: "linear-gradient(135deg, #2563eb, #6366f1)", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="16" height="16" viewBox="0 0 32 22" fill="none">
+              <rect x="2" y="9" width="28" height="4" rx="2" fill="white" opacity="0.9"/>
+              <rect x="5" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+              <rect x="24" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+              <polyline points="6,8 12,4 18,6 26,1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="26" cy="1" r="2" fill="white"/>
+            </svg>
+          </div>
+          <span style={{ fontWeight: "800", fontSize: "17px", color: "#0f172a", letterSpacing: "-0.03em" }}>
+            Bench<span style={{ color: "#2563eb" }}>line</span>
+          </span>
         </div>
         <a href="/api/auth/jobber" style={{ background: "#2563eb", color: "#fff", padding: "9px 20px", borderRadius: "9px", fontSize: "13px", fontWeight: "600", textDecoration: "none" }}>
           Connect Jobber {"\u2192"}
@@ -48,8 +58,16 @@ export default function Home() {
           <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "16px", padding: "24px", boxShadow: "0 8px 32px rgba(0,0,0,0.07)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", paddingBottom: "14px", borderBottom: "1px solid #f1f5f9" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "22px", height: "22px", background: "linear-gradient(135deg, #3b82f6, #6366f1)", borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px" }}>{"\u26a1"}</div>
-                <span style={{ fontWeight: "800", fontSize: "14px" }}>Bench<span style={{ color: "#2563eb" }}>line</span></span>
+                <div style={{ width: "22px", height: "22px", background: "linear-gradient(135deg, #2563eb, #6366f1)", borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="12" height="12" viewBox="0 0 32 22" fill="none">
+                    <rect x="2" y="9" width="28" height="4" rx="2" fill="white" opacity="0.9"/>
+                    <rect x="5" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+                    <rect x="24" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+                    <polyline points="6,8 12,4 18,6 26,1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    <circle cx="26" cy="1" r="2" fill="white"/>
+                  </svg>
+                </div>
+                <span style={{ fontWeight: "800", fontSize: "14px", letterSpacing: "-0.03em" }}>Bench<span style={{ color: "#2563eb" }}>line</span></span>
                 <span style={{ fontSize: "11px", color: "#94a3b8" }}>{"\u00b7"} Swindell HVAC & Plumbing {"\u00b7"} January 2026</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -183,8 +201,16 @@ export default function Home() {
       {/* FOOTER */}
       <div style={{ background: "#0f172a", padding: "32px 24px", textAlign: "center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "12px" }}>
-          <div style={{ width: "22px", height: "22px", background: "linear-gradient(135deg, #3b82f6, #6366f1)", borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px" }}>{"\u26a1"}</div>
-          <span style={{ fontWeight: "800", fontSize: "15px", color: "#fff" }}>Bench<span style={{ color: "#60a5fa" }}>line</span></span>
+          <div style={{ width: "22px", height: "22px", background: "linear-gradient(135deg, #2563eb, #6366f1)", borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="12" height="12" viewBox="0 0 32 22" fill="none">
+              <rect x="2" y="9" width="28" height="4" rx="2" fill="white" opacity="0.9"/>
+              <rect x="5" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+              <rect x="24" y="13" width="3" height="8" rx="1.5" fill="white" opacity="0.9"/>
+              <polyline points="6,8 12,4 18,6 26,1" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="26" cy="1" r="2" fill="white"/>
+            </svg>
+          </div>
+          <span style={{ fontWeight: "800", fontSize: "15px", color: "#fff", letterSpacing: "-0.03em" }}>Bench<span style={{ color: "#60a5fa" }}>line</span></span>
         </div>
         <p style={{ fontSize: "12px", color: "#475569" }}>getbenchline.com {"\u00b7"} Built for Jobber users {"\u00b7"} Not affiliated with Jobber Inc.</p>
       </div>
