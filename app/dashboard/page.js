@@ -78,7 +78,7 @@ async function getJobberData() {
         account { name }
         quotes(first: 100) { nodes { quoteStatus amounts { total } } }
         jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } } }
-        invoices(first: 100) { nodes { amounts { total } } }
+        invoices(first: 100) { nodes { amounts { total } createdAt } }
       }`,
     }),
     cache: "no-store",
@@ -115,6 +115,19 @@ export default async function Dashboard() {
   const avgMargin = marginsArr.length > 0 ? (marginsArr.reduce((a, b) => a + b, 0) / marginsArr.length).toFixed(1) : "0.0";
 
   const now = new Date();
+  const monthlyRevenue = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString("default", { month: "short" });
+    const monthInvoices = invoices.filter((inv) => {
+      const invDate = new Date(inv.createdAt);
+      return invDate.getMonth() === d.getMonth() && invDate.getFullYear() === d.getFullYear();
+    });
+    const total = monthInvoices.reduce((sum, inv) => sum + (inv.amounts?.total || 0), 0);
+    monthlyRevenue.push({ label, total });
+  }
+  const maxRevenue = Math.max(...monthlyRevenue.map((m) => m.total), 1);
+
   const monthYear = now.toLocaleString("default", { month: "long", year: "numeric" });
 
   const metrics = [
@@ -126,7 +139,7 @@ export default async function Dashboard() {
   ];
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f8fafc", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#fff", minHeight: "100vh" }}>
 
       {/* NAV */}
       <nav style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "0 24px", height: "58px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -166,6 +179,33 @@ export default async function Dashboard() {
               <div style={{ fontSize: "10px", color: "#94a3b8" }}>{m.sub}</div>
             </div>
           ))}
+        </div>
+
+        {/* Revenue Chart */}
+        <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", marginBottom: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div>
+              <div style={{ fontWeight: "700", fontSize: "15px", color: "#0f172a" }}>Revenue — Last 6 Months</div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>From Jobber invoices &middot; real time</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", height: "130px" }}>
+            {monthlyRevenue.map((m, i) => {
+              const pct = (m.total / maxRevenue) * 100;
+              const isLast = i === monthlyRevenue.length - 1;
+              return (
+                <div key={m.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", height: "100%" }}>
+                  <div style={{ fontSize: "11px", color: isLast ? "#0f172a" : "#94a3b8", fontWeight: isLast ? "700" : "400" }}>
+                    {m.total > 0 ? `$${(m.total / 1000).toFixed(0)}k` : ""}
+                  </div>
+                  <div style={{ flex: 1, width: "100%", display: "flex", alignItems: "flex-end" }}>
+                    <div style={{ width: "100%", height: `${Math.max(pct, 2)}%`, background: isLast ? "linear-gradient(180deg, #2563eb, #6366f1)" : "#f1f5f9", borderRadius: "6px 6px 0 0", border: isLast ? "1px solid #bfdbfe" : "1px solid #e8ecf0", minHeight: "4px" }} />
+                  </div>
+                  <div style={{ fontSize: "11px", color: isLast ? "#2563eb" : "#94a3b8", fontWeight: isLast ? "600" : "400" }}>{m.label}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Footer */}
