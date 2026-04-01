@@ -16,7 +16,7 @@ async function getFreshToken() {
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${accountData.access_token}`,
-      "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
+      "X-JOBBER-GRAPHQL-VERSION": "2025-04-16",
     },
     body: JSON.stringify({ query: `query { account { name } }` }),
     cache: "no-store",
@@ -71,7 +71,7 @@ async function getJobberData() {
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`,
-      "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
+      "X-JOBBER-GRAPHQL-VERSION": "2025-04-16",
     },
     body: JSON.stringify({
       query: `query {
