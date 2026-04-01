@@ -10,27 +10,7 @@ async function getFreshToken() {
 
   if (error || !accountData) return null;
 
-  // Try current token first with a test query
-  const testRes = await fetch("https://api.getjobber.com/api/graphql", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${accountData.access_token}`,
-      "X-JOBBER-GRAPHQL-VERSION": "2025-04-16",
-    },
-    body: JSON.stringify({ query: `query { account { name } }` }),
-    cache: "no-store",
-  });
-
-  const testJson = await testRes.json();
-
-  // If token is valid return it
-  if (testJson.data) {
-    return accountData.access_token;
-  }
-
-  // Token expired — use refresh token to get new one
-  console.log("Token expired, refreshing...");
+  // Try to refresh immediately every time to get a guaranteed fresh token
   const refreshRes = await fetch("https://api.getjobber.com/api/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,22 +24,21 @@ async function getFreshToken() {
 
   const refreshData = await refreshRes.json();
 
-  if (!refreshData.access_token) {
-    console.log("Refresh failed:", JSON.stringify(refreshData));
-    return null;
+  if (refreshData.access_token) {
+    // Store the new tokens
+    await supabase
+      .from("jobber_accounts")
+      .update({
+        access_token: refreshData.access_token,
+        refresh_token: refreshData.refresh_token,
+      })
+      .eq("id", accountData.id);
+    return refreshData.access_token;
   }
 
-  // Store new tokens in Supabase
-  await supabase
-    .from("jobber_accounts")
-    .update({
-      access_token: refreshData.access_token,
-      refresh_token: refreshData.refresh_token,
-    })
-    .eq("id", accountData.id);
-
-  console.log("Token refreshed successfully");
-  return refreshData.access_token;
+  // If refresh failed, try existing token as fallback
+  console.log("Refresh failed, trying existing token:", JSON.stringify(refreshData));
+  return accountData.access_token;
 }
 
 async function getJobberData() {
