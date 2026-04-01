@@ -77,7 +77,8 @@ async function getJobberData() {
       query: `query {
         account { name }
         quotes(first: 100) { nodes { quoteStatus amounts { total } } }
-        jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } } }
+        jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } assignedUsers { nodes { id name { full } } } } }
+        timesheetEntries(first: 200) { nodes { user { id name { full } } job { jobCosting { totalRevenue } } finalDuration } }
         invoices(first: 100) { nodes { amounts { total } createdAt } }
       }`,
     }),
@@ -113,6 +114,22 @@ export default async function Dashboard() {
     .filter((j) => j.jobCosting?.totalRevenue > 0)
     .map((j) => ((j.jobCosting.totalRevenue - j.jobCosting.totalCost) / j.jobCosting.totalRevenue) * 100);
   const avgMargin = marginsArr.length > 0 ? (marginsArr.reduce((a, b) => a + b, 0) / marginsArr.length).toFixed(1) : "0.0";
+
+  const techMap = {};
+  const timesheets = data?.timesheetEntries?.nodes || [];
+  timesheets.forEach((entry) => {
+    const userId = entry.user?.id;
+    const userName = entry.user?.name?.full || "Unknown";
+    const revenue = entry.job?.jobCosting?.totalRevenue || 0;
+    if (!userId) return;
+    if (!techMap[userId]) {
+      techMap[userId] = { name: userName, revenue: 0, jobs: 0 };
+    }
+    techMap[userId].revenue += revenue;
+    techMap[userId].jobs += 1;
+  });
+  const techs = Object.values(techMap).sort((a, b) => b.revenue - a.revenue);
+  const maxTechRevenue = Math.max(...techs.map((t) => t.revenue), 1);
 
   const now = new Date();
   const monthlyRevenue = [];
@@ -217,6 +234,45 @@ export default async function Dashboard() {
             })}
           </div>
         </div>
+
+        {techs.length > 0 && (
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", marginBottom: "24px" }}>
+            <div style={{ marginBottom: "16px" }}>
+              <div style={{ fontWeight: "700", fontSize: "15px", color: "#0f172a" }}>Technician Performance</div>
+              <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "2px" }}>Revenue by technician &middot; this period</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {techs.map((t, i) => {
+                const pct = (t.revenue / maxTechRevenue) * 100;
+                const colors = ["#2563eb", "#16a34a", "#7c3aed", "#d97706", "#0891b2"];
+                const color = colors[i % colors.length];
+                const initials = t.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <div key={t.name} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "16px 18px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: color + "18", border: `1.5px solid ${color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color }}>
+                          {initials}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: "600", fontSize: "14px", color: "#0f172a" }}>{t.name}</div>
+                          <div style={{ fontSize: "11px", color: "#94a3b8" }}>{t.jobs} jobs this period</div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontWeight: "700", fontSize: "17px", color: "#0f172a" }}>${t.revenue.toLocaleString()}</div>
+                        <div style={{ fontSize: "10px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Revenue</div>
+                      </div>
+                    </div>
+                    <div style={{ height: "4px", background: "#f1f5f9", borderRadius: "2px", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: "2px" }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <p style={{ textAlign: "center", fontSize: "12px", color: "#94a3b8", marginTop: "32px" }}>
