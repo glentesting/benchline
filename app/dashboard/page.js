@@ -1,44 +1,92 @@
 import { supabase } from "../../lib/supabase";
 
-async function getJobberData() {
-  const { data: accountData, error: dbError } = await supabase
+async function getFreshToken() {
+  const { data: accountData, error } = await supabase
     .from("jobber_accounts")
-    .select("access_token")
+    .select("access_token, refresh_token, id")
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  if (dbError || !accountData) {
-    console.log("Supabase error:", dbError?.message);
-    return null;
-  }
+  if (error || !accountData) return null;
 
-  console.log("Got access token, length:", accountData.access_token?.length);
-
-  const res = await fetch("https://api.getjobber.com/api/graphql", {
+  // Try current token first with a test query
+  const testRes = await fetch("https://api.getjobber.com/api/graphql", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${accountData.access_token}`,
       "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
     },
+    body: JSON.stringify({ query: `query { account { name } }` }),
+    cache: "no-store",
+  });
+
+  const testJson = await testRes.json();
+
+  // If token is valid return it
+  if (testJson.data) {
+    return accountData.access_token;
+  }
+
+  // Token expired — use refresh token to get new one
+  console.log("Token expired, refreshing...");
+  const refreshRes = await fetch("https://api.getjobber.com/api/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: `query { account { name } }`,
+      client_id: process.env.JOBBER_CLIENT_ID,
+      client_secret: process.env.JOBBER_CLIENT_SECRET,
+      grant_type: "refresh_token",
+      refresh_token: accountData.refresh_token,
+    }),
+  });
+
+  const refreshData = await refreshRes.json();
+
+  if (!refreshData.access_token) {
+    console.log("Refresh failed:", JSON.stringify(refreshData));
+    return null;
+  }
+
+  // Store new tokens in Supabase
+  await supabase
+    .from("jobber_accounts")
+    .update({
+      access_token: refreshData.access_token,
+      refresh_token: refreshData.refresh_token,
+    })
+    .eq("id", accountData.id);
+
+  console.log("Token refreshed successfully");
+  return refreshData.access_token;
+}
+
+async function getJobberData() {
+  const token = await getFreshToken();
+  if (!token) return null;
+
+  const res = await fetch("https://api.getjobber.com/api/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
+    },
+    body: JSON.stringify({
+      query: `query {
+        account { name }
+        quotes(first: 100) { nodes { status amounts { total } } }
+        jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } } }
+        invoices(first: 100) { nodes { amounts { total } } }
+      }`,
     }),
     cache: "no-store",
   });
 
-  console.log("Jobber response status:", res.status);
-  const text = await res.text();
-  console.log("Jobber raw response:", text);
-
-  try {
-    const json = JSON.parse(text);
-    return json.data;
-  } catch (e) {
-    console.log("Parse error:", e.message);
-    return null;
-  }
+  const json = await res.json();
+  console.log("Jobber data fetched, account:", json?.data?.account?.name);
+  return json.data;
 }
 
 export default async function Dashboard() {
