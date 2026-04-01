@@ -34,12 +34,12 @@ export async function GET(request) {
   );
   const accountId = String(payload.account_id);
 
-  const { error } = await supabase.from("jobber_accounts").insert({
+  const { error } = await supabase.from("jobber_accounts").upsert({
     jobber_account_id: accountId,
     access_token: token.access_token,
     refresh_token: token.refresh_token,
     account_name: null,
-  });
+  }, { onConflict: "jobber_account_id" });
 
   if (error) {
     return new Response(`Failed to store account: ${error.message}`, {
