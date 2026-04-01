@@ -1,36 +1,44 @@
 import { supabase } from "../../lib/supabase";
 
 async function getJobberData() {
-  const { data } = await supabase
+  const { data: accountData, error: dbError } = await supabase
     .from("jobber_accounts")
     .select("access_token")
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  if (!data) return null;
+  if (dbError || !accountData) {
+    console.log("Supabase error:", dbError?.message);
+    return null;
+  }
+
+  console.log("Got access token, length:", accountData.access_token?.length);
 
   const res = await fetch("https://api.getjobber.com/api/graphql", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${data.access_token}`,
+      "Authorization": `Bearer ${accountData.access_token}`,
       "X-JOBBER-GRAPHQL-VERSION": "2024-11-15",
     },
     body: JSON.stringify({
-      query: `query {
-        account { name }
-        quotes(first: 100) { nodes { status amounts { total } } }
-        jobs(first: 100) { nodes { jobCosting { totalRevenue totalCost } } }
-        invoices(first: 100) { nodes { amounts { total } } }
-      }`,
+      query: `query { account { name } }`,
     }),
     cache: "no-store",
   });
 
-  const json = await res.json();
-  console.log("Full Jobber response:", JSON.stringify(json?.data?.account));
-  return json.data;
+  console.log("Jobber response status:", res.status);
+  const text = await res.text();
+  console.log("Jobber raw response:", text);
+
+  try {
+    const json = JSON.parse(text);
+    return json.data;
+  } catch (e) {
+    console.log("Parse error:", e.message);
+    return null;
+  }
 }
 
 export default async function Dashboard() {
