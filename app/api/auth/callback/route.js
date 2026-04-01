@@ -27,17 +27,24 @@ export async function GET(request) {
   }
 
   const token = await tokenRes.json();
-  console.log("Jobber token response:", JSON.stringify(token));
+
+  // Decode account_id from JWT payload
+  const payload = JSON.parse(
+    Buffer.from(token.access_token.split(".")[1], "base64").toString()
+  );
+  const accountId = String(payload.account_id);
 
   const { error } = await supabase.from("jobber_accounts").insert({
-    jobber_account_id: token.account_id,
+    jobber_account_id: accountId,
     access_token: token.access_token,
     refresh_token: token.refresh_token,
-    account_name: token.account_name || null,
+    account_name: null,
   });
 
   if (error) {
-    return new Response(`Failed to store account: ${error.message}`, { status: 500 });
+    return new Response(`Failed to store account: ${error.message}`, {
+      status: 500,
+    });
   }
 
   return Response.redirect("https://benchline-eta.vercel.app/dashboard");
