@@ -84,14 +84,13 @@ export default function Home() {
             <h2 style={{ fontSize: "32px", fontWeight: "800", color: "#0f172a", marginBottom: "12px" }}>5 numbers. That's it.</h2>
             <p style={{ fontSize: "16px", color: "#64748b", maxWidth: "420px", margin: "0 auto" }}>We don't overwhelm you with 50 charts. Just the 5 things that actually move your business.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px" }}>
             {[
               { icon: "\ud83d\udccb", title: "Quote Close Rate", desc: "See exactly which quotes are winning and which are dying \u2014 and why." },
               { icon: "\ud83d\udcb5", title: "Average Ticket Size", desc: "Know if your pricing is drifting. Catch low-ticket jobs before they become a pattern." },
               { icon: "\ud83d\udc77", title: "Revenue Per Tech", desc: "See your top performer and who needs a coaching conversation \u2014 instantly." },
               { icon: "\ud83d\udd01", title: "Callback Rate", desc: "Track return visits so quality problems surface before customers complain." },
               { icon: "\ud83d\udcc8", title: "Job Profit Margin", desc: "Know which service types make you money and which ones are eating it." },
-              { icon: "\ud83d\udce7", title: "Weekly Email Digest", desc: "Every Monday morning, your 5 numbers in your inbox. No login required." },
             ].map((f) => (
               <div key={f.title} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "22px" }}>
                 <div style={{ fontSize: "26px", marginBottom: "12px" }}>{f.icon}</div>
@@ -99,6 +98,16 @@ export default function Home() {
                 <div style={{ fontSize: "13px", color: "#64748b", lineHeight: "1.65" }}>{f.desc}</div>
               </div>
             ))}
+          </div>
+          <div style={{ background: "linear-gradient(135deg, #eff6ff, #f5f3ff)", border: "1px solid #bfdbfe", borderRadius: "12px", padding: "24px", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <span style={{ fontSize: "32px" }}>{"\ud83d\udce7"}</span>
+              <div>
+                <div style={{ fontWeight: "700", fontSize: "14px", color: "#0f172a", marginBottom: "4px" }}>Weekly Email Digest</div>
+                <div style={{ fontSize: "13px", color: "#64748b", lineHeight: "1.65" }}>Every Monday morning, your 5 numbers in your inbox. No login required.</div>
+              </div>
+            </div>
+            <span style={{ background: "#2563eb", color: "#fff", fontSize: "11px", fontWeight: "700", padding: "5px 12px", borderRadius: "20px", whiteSpace: "nowrap" }}>Included in Pro</span>
           </div>
         </div>
       </div>
